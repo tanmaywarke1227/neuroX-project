@@ -7,7 +7,7 @@ const reportSections = [
     desc: 'Monthly energy consumption analysis, cost savings breakdown, and peak load reduction metrics.',
     metrics: [
       { label: 'Total Saved', value: '12,840 kWh' },
-      { label: 'Cost Savings', value: '$3,462' },
+      { label: 'Cost Savings', value: '₹2,88,000' },
       { label: 'Peak Reduction', value: '23%' },
     ],
   },

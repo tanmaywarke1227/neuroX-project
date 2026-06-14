@@ -183,7 +183,7 @@ export const mockEnergyMetrics: EnergyMetrics = {
   currentConsumption: 284.6,
   dailyConsumption: 4218,
   monthlySavings: 12840,
-  costSavings: 3462,
+  costSavings: 288000,
   peakLoad: 520,
   peakLoadReduction: 23,
   hvacEfficiency: 87,
@@ -282,7 +282,7 @@ export const mockTrainingMetrics: TrainingMetrics = {
   learningRate: 0.0001,
   convergenceScore: 92,
   isTraining: false,
-  modelVersion: 'DQN-v3.2.1',
+  modelVersion: 'TD3-v3.2.1',
   episodes: Array.from({ length: 100 }, (_, i) => ({
     episode: i * 500,
     reward: -2 + (4.5 * (1 - Math.exp(-i / 30))) + (Math.random() * 0.8 - 0.4),
@@ -309,7 +309,7 @@ export const mockKPIData: KPIData[] = [
   { label: 'HVAC Status', value: 'Active', unit: '', change: 0, changeDirection: 'neutral', status: 'good', icon: 'Wind' },
   { label: 'Cooling Level', value: 68, unit: '%', change: 5.2, changeDirection: 'up', status: 'good', icon: 'Snowflake' },
   { label: 'Energy Usage', value: 284.6, unit: 'kW', change: -18.3, changeDirection: 'down', status: 'good', icon: 'Zap' },
-  { label: 'Est. Savings', value: 3462, unit: '$/mo', change: 22.1, changeDirection: 'up', status: 'good', icon: 'TrendingDown' },
+  { label: 'Est. Savings', value: 288000, unit: '₹/mo', change: 22.1, changeDirection: 'up', status: 'good', icon: 'TrendingDown' },
   { label: 'RL Reward', value: 2.14, unit: 'pts', change: 8.6, changeDirection: 'up', status: 'good', icon: 'Brain' },
   { label: 'System Health', value: 94, unit: '%', change: 1.2, changeDirection: 'up', status: 'good', icon: 'Activity' },
 ];

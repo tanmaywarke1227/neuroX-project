@@ -26,7 +26,7 @@ const layers = [
     subtitle: 'Decision Intelligence (Stable-Baselines3)',
     icon: Brain,
     color: '#f7b928',
-    items: ['State Encoder', 'DQN Agent', 'Reward Calculator', 'Policy Optimizer'],
+    items: ['State Encoder', 'TD3 Agent', 'Reward Calculator', 'Policy Optimizer'],
     desc: 'Core reinforcement learning engine that observes building state and decides optimal HVAC actions to minimize energy while maintaining comfort.',
   },
   {

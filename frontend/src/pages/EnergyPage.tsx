@@ -24,7 +24,7 @@ export default function EnergyPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Current Load', value: `${data.currentConsumption}`, unit: 'kW', icon: Zap, color: 'var(--color-primary)' },
-          { label: 'Monthly Savings', value: `$${savings}`, unit: '', icon: TrendingDown, color: 'var(--color-success)' },
+          { label: 'Monthly Savings', value: `₹${savings}`, unit: '', icon: TrendingDown, color: 'var(--color-success)' },
           { label: 'Peak Reduction', value: `${data.peakLoadReduction}%`, unit: '', icon: BarChart3, color: 'var(--color-warning)' },
           { label: 'CO₂ Reduced', value: `${carbon}`, unit: 'kg', icon: Leaf, color: 'var(--color-success)' },
         ].map((item, i) => (
@@ -120,7 +120,7 @@ export default function EnergyPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             { title: 'Peak Shaving', desc: 'RL agent reduced peak load by 23% during afternoon hours by pre-cooling zones before occupancy peaks.' },
-            { title: 'Off-Hours Savings', desc: 'Automatic HVAC throttling during 10PM–6AM saves approximately $420/month with zero comfort impact.' },
+            { title: 'Off-Hours Savings', desc: 'Automatic HVAC throttling during 10PM–6AM saves approximately ₹35,000/month with zero comfort impact.' },
             { title: 'Predictive Cooling', desc: 'Agent anticipates Monday morning rush by initiating gradual cooling at 6:30 AM, reducing startup energy by 15%.' },
           ].map((insight, i) => (
             <div key={i} className="p-3 rounded-xl" style={{ background: 'var(--color-surface-1)' }}>

@@ -110,7 +110,7 @@ export interface EnergyMetrics {
   currentConsumption: number; // kW
   dailyConsumption: number; // kWh
   monthlySavings: number; // kWh
-  costSavings: number; // $
+  costSavings: number; // ₹
   peakLoad: number; // kW
   peakLoadReduction: number; // percentage
   hvacEfficiency: number; // percentage

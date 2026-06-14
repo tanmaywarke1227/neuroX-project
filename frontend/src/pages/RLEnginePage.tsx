@@ -3,31 +3,62 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
 import { mockRLEngineState } from '../data/mockData';
+import { useRLState } from '../hooks/useDataHooks';
 import {
   Brain, Thermometer, Users, Clock, Sun, ChevronRight,
   TrendingUp, Gauge, ArrowUpCircle, ArrowDownCircle, MinusCircle, Zap, Heart,
+  Loader2, AlertCircle, Wifi, WifiOff,
 } from 'lucide-react';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 
 export default function RLEnginePage() {
-  const rl = mockRLEngineState;
+  // Try real backend data first, fall back to mock
+  const { data: liveRL, isLoading, isError } = useRLState();
+  const rl = liveRL || mockRLEngineState;
+  const isLive = !!liveRL;
+
   const confidence = useAnimatedCounter(rl.agentConfidence * 100, 1500, 1);
   const totalReward = useAnimatedCounter(rl.currentReward.totalReward, 1200, 2);
 
-  const actionConfig = {
+  const actionConfig: Record<string, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
     increase_cooling: { label: 'Increase Cooling', icon: ArrowUpCircle, color: 'var(--color-primary)' },
     decrease_cooling: { label: 'Decrease Cooling', icon: ArrowDownCircle, color: 'var(--color-warning)' },
     maintain_cooling: { label: 'Maintain Cooling', icon: MinusCircle, color: 'var(--color-success)' },
   };
 
-  const currentActionCfg = actionConfig[rl.currentAction];
+  const currentActionCfg = actionConfig[rl.currentAction] || actionConfig.maintain_cooling;
 
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-        <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-          Real-time RL decision-making process visualization
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+            Real-time RL decision-making process visualization
+          </p>
+          {/* Data Source Indicator */}
+          <div className="flex items-center gap-1.5">
+            {isLive ? (
+              <>
+                <Wifi size={12} style={{ color: 'var(--color-success)' }} />
+                <span className="text-[10px] font-medium" style={{ color: 'var(--color-success)' }}>
+                  Live Data · {rl.totalDecisions} decisions
+                </span>
+              </>
+            ) : isLoading ? (
+              <>
+                <Loader2 size={12} className="animate-spin" style={{ color: 'var(--color-text-tertiary)' }} />
+                <span className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>Connecting...</span>
+              </>
+            ) : (
+              <>
+                <WifiOff size={12} style={{ color: 'var(--color-warning)' }} />
+                <span className="text-[10px] font-medium" style={{ color: 'var(--color-warning)' }}>
+                  Mock Data · Backend offline
+                </span>
+              </>
+            )}
+          </div>
+        </div>
       </motion.div>
 
       {/* State → Action → Reward Flow */}
@@ -35,9 +66,14 @@ export default function RLEnginePage() {
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }} className="card p-6"
       >
-        <h3 className="text-base font-semibold mb-5" style={{ color: 'var(--color-text-primary)' }}>
-          Decision Flow
-        </h3>
+        <div className="flex items-center gap-2 mb-5">
+          <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            Decision Flow
+          </h3>
+          {isLive && (
+            <span className="badge badge-success text-[9px]">LIVE</span>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           {/* STATE */}
           <motion.div
@@ -55,7 +91,7 @@ export default function RLEnginePage() {
             <div className="space-y-2">
               {[
                 { icon: Users, label: 'Occupancy', value: `${rl.currentState.occupancy}%` },
-                { icon: Thermometer, label: 'Temperature', value: `${rl.currentState.temperature.toFixed(1)}°C` },
+                { icon: Thermometer, label: 'Temperature', value: `${typeof rl.currentState.temperature === 'number' ? rl.currentState.temperature.toFixed(1) : rl.currentState.temperature}°C` },
                 { icon: Zap, label: 'HVAC', value: rl.currentState.hvacStatus ? 'Active' : 'Idle' },
                 { icon: Clock, label: 'Time', value: `${rl.currentState.timeOfDay}:00` },
                 { icon: Sun, label: 'Outdoor', value: `${rl.currentState.outdoorTemp}°C` },
@@ -146,7 +182,7 @@ export default function RLEnginePage() {
             Reward Timeline
           </h3>
           <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-            Total reward per decision step
+            Total reward per decision step {isLive && '(live)'}
           </p>
           <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -176,14 +212,14 @@ export default function RLEnginePage() {
             Action Distribution
           </h3>
           <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-            How the agent distributes its decisions
+            How the agent distributes its decisions {isLive && '(from database)'}
           </p>
           <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={rl.actionDistribution.map((d) => ({
                   ...d,
-                  label: actionConfig[d.action].label,
+                  label: actionConfig[d.action]?.label || d.action,
                 }))}
                 margin={{ top: 5, right: 10, left: -15, bottom: 0 }}
                 barCategoryGap="30%"
