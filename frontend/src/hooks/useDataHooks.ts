@@ -1,13 +1,10 @@
 // =============================================
 // React Query Hooks — Data fetching with caching & auto-refetch
+// (V4 — Hardware-Aligned, cleaned up)
 // =============================================
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchBuildingState,
-  fetchOccupancyData,
-  fetchHVACState,
-  fetchEnergyMetrics,
   fetchRLEngineState,
   fetchTrainingMetrics,
   // Real backend calls
@@ -21,92 +18,66 @@ import {
 } from '../services/api';
 
 // =============================================
-// Existing mock-data hooks (unchanged)
+// Mock Data Hooks (pages still using mock fallback)
 // =============================================
 
-export const useBuilding = () =>
+export const useRLEngineState = () =>
   useQuery({
-    queryKey: ['building'],
-    queryFn: fetchBuildingState,
-    refetchInterval: 10000,
-  });
-
-export const useOccupancy = () =>
-  useQuery({
-    queryKey: ['occupancy'],
-    queryFn: fetchOccupancyData,
-    refetchInterval: 15000,
-  });
-
-export const useHVAC = () =>
-  useQuery({
-    queryKey: ['hvac'],
-    queryFn: fetchHVACState,
-    refetchInterval: 8000,
-  });
-
-export const useEnergy = () =>
-  useQuery({
-    queryKey: ['energy'],
-    queryFn: fetchEnergyMetrics,
-    refetchInterval: 12000,
-  });
-
-export const useRLEngine = () =>
-  useQuery({
-    queryKey: ['rl-engine'],
+    queryKey: ['rl-engine-state'],
     queryFn: fetchRLEngineState,
     refetchInterval: 5000,
   });
 
-export const useTraining = () =>
+export const useTrainingMetrics = () =>
   useQuery({
-    queryKey: ['training'],
+    queryKey: ['training-metrics'],
     queryFn: fetchTrainingMetrics,
-    refetchInterval: 20000,
+    refetchInterval: 3000,
   });
 
 // =============================================
-// REAL Backend Hooks (Flask API)
+// Real Backend Hooks
 // =============================================
 
-/** Fetch prediction history from Postgres */
+/** AI Prediction mutation — POST /predict */
+export const useAIPrediction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: getAIPrediction,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hvac-history'] });
+      qc.invalidateQueries({ queryKey: ['rl-state'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-summary'] });
+    },
+  });
+};
+
+/** HVAC prediction history — GET /history */
 export const useHVACHistory = (limit: number = 50) =>
   useQuery({
     queryKey: ['hvac-history', limit],
     queryFn: () => fetchHVACHistory(limit),
     refetchInterval: 10000,
+    retry: 1,
   });
 
-/** Mutation: send sensor data → get AI prediction */
-export const useAIPrediction = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: getAIPrediction,
-    onSuccess: () => {
-      // Refetch history after a new prediction is logged
-      queryClient.invalidateQueries({ queryKey: ['hvac-history'] });
-    },
-  });
-};
-
-/** Fetch paginated AI training dataset */
+/** AI Dataset — GET /dataset */
 export const useDataset = (params: { page?: number; per_page?: number; hours?: number } = {}) =>
   useQuery({
     queryKey: ['dataset', params],
     queryFn: () => fetchDataset(params),
-    staleTime: 60000, // dataset doesn't change often
+    retry: 1,
   });
 
-/** Fetch dataset summary statistics */
+/** Dataset stats — GET /dataset/stats */
 export const useDatasetStats = () =>
   useQuery({
     queryKey: ['dataset-stats'],
     queryFn: fetchDatasetStats,
-    staleTime: 120000,
+    retry: 1,
   });
 
-/** Backend health check */
+/** Backend health check — GET /health */
 export const useBackendHealth = () =>
   useQuery({
     queryKey: ['backend-health'],

@@ -1,22 +1,13 @@
 // =============================================
-// API Service Layer
-// Combines mock data for pages not yet connected
-// with REAL Flask backend calls for AI/HVAC data.
+// API Service Layer (V4 — Hardware-Aligned)
+// Real Flask backend calls + mock fallback functions.
 // =============================================
 
 import {
-  mockBuildingState,
-  mockOccupancyData,
-  mockHVACState,
-  mockEnergyMetrics,
   mockRLEngineState,
   mockTrainingMetrics,
 } from '../data/mockData';
 import type {
-  BuildingState,
-  OccupancyData,
-  HVACState,
-  EnergyMetrics,
   RLEngineState,
   TrainingMetrics,
   ApiResponse,
@@ -116,7 +107,7 @@ export async function checkBackendHealth(): Promise<{
   return backendFetch('/health');
 }
 
-/** GET /rl/state — Full RL engine state (current state, action, reward, history, distribution) */
+/** GET /rl/state — Full RL engine state */
 export async function fetchRLState(): Promise<{
   currentState: {
     occupancy: number;
@@ -174,28 +165,8 @@ export async function fetchDashboardSummary(): Promise<{
 }
 
 // =============================================
-// Mock Data Functions (existing pages)
+// Mock Data Functions (for pages still using mock fallback)
 // =============================================
-
-export async function fetchBuildingState(): Promise<BuildingState> {
-  await delay(300);
-  return { ...mockBuildingState, lastUpdated: new Date().toISOString() };
-}
-
-export async function fetchOccupancyData(): Promise<OccupancyData> {
-  await delay(250);
-  return mockOccupancyData;
-}
-
-export async function fetchHVACState(): Promise<HVACState> {
-  await delay(200);
-  return mockHVACState;
-}
-
-export async function fetchEnergyMetrics(): Promise<EnergyMetrics> {
-  await delay(350);
-  return mockEnergyMetrics;
-}
 
 export async function fetchRLEngineState(): Promise<RLEngineState> {
   await delay(300);
@@ -205,20 +176,6 @@ export async function fetchRLEngineState(): Promise<RLEngineState> {
 export async function fetchTrainingMetrics(): Promise<TrainingMetrics> {
   await delay(250);
   return mockTrainingMetrics;
-}
-
-// --- Mutation endpoints (future) ---
-export async function updateHVACOverride(_zoneId: string, _override: boolean): Promise<void> {
-  await delay(200);
-}
-
-export async function startSimulation(_config: Record<string, unknown>): Promise<void> {
-  await delay(200);
-}
-
-export async function exportReport(_format: 'pdf' | 'csv' | 'excel'): Promise<Blob> {
-  await delay(500);
-  return new Blob(['Mock report data'], { type: 'text/plain' });
 }
 
 // Generic fetch (kept for compatibility)

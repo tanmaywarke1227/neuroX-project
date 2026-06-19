@@ -3,15 +3,12 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
-  Building2,
-  Users,
+  Home,
   Brain,
   Wind,
-  Zap,
+  BarChart3,
   GraduationCap,
-  FlaskConical,
   Network,
-  FileBarChart,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -20,15 +17,12 @@ import {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { id: 'building', label: 'Building Twin', path: '/building', icon: Building2 },
-  { id: 'occupancy', label: 'Occupancy', path: '/occupancy', icon: Users },
+  { id: 'room', label: 'Room Twin', path: '/room', icon: Home },
   { id: 'rl-engine', label: 'RL Engine', path: '/rl-engine', icon: Brain },
-  { id: 'hvac', label: 'HVAC', path: '/hvac', icon: Wind },
-  { id: 'energy', label: 'Energy Analytics', path: '/energy', icon: Zap },
+  { id: 'hvac', label: 'HVAC Control', path: '/hvac', icon: Wind },
+  { id: 'analytics', label: 'Analytics', path: '/analytics', icon: BarChart3 },
   { id: 'training', label: 'Training Monitor', path: '/training', icon: GraduationCap },
-  { id: 'simulation', label: 'Simulation', path: '/simulation', icon: FlaskConical },
   { id: 'architecture', label: 'Architecture', path: '/architecture', icon: Network },
-  { id: 'reports', label: 'Reports', path: '/reports', icon: FileBarChart },
   { id: 'settings', label: 'Settings', path: '/settings', icon: Settings },
 ];
 
@@ -80,6 +74,25 @@ export default function Sidebar() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Phase Badge */}
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 pt-3 pb-1"
+          >
+            <div
+              className="text-[9px] font-bold uppercase tracking-widest text-center py-1.5 rounded-lg"
+              style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}
+            >
+              Phase 1 · Bedroom Demo
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 px-2.5">

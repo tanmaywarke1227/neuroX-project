@@ -3,16 +3,13 @@ import { Moon, Sun, Bell, Search } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 const pageTitles: Record<string, string> = {
-  '/': 'Executive Command Center',
-  '/building': 'Digital Building Twin',
-  '/occupancy': 'Occupancy Intelligence',
+  '/': 'Dashboard',
+  '/room': 'Room Digital Twin',
   '/rl-engine': 'RL Control Engine',
-  '/hvac': 'HVAC Operations Center',
-  '/energy': 'Energy Analytics Lab',
-  '/training': 'RL Training Monitor',
-  '/simulation': 'Simulation Center',
+  '/hvac': 'HVAC Control',
+  '/analytics': 'Analytics',
+  '/training': 'Training Monitor',
   '/architecture': 'System Architecture',
-  '/reports': 'Reports & Insights',
   '/settings': 'Settings',
 };
 

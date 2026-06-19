@@ -172,10 +172,10 @@ export default function LoginPage() {
             className="text-center mt-4"
           >
             <p className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              Intelligent Building Management
+              Smart Room Optimization
             </p>
             <p className="text-sm mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
-              RL-Powered Energy Optimization
+              Phase 1 Demo · Bedroom Environment
             </p>
           </motion.div>
         </div>
@@ -220,7 +220,7 @@ export default function LoginPage() {
                 </span>
               </div>
               <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                Smart Building Intelligence
+                Smart Room Energy Optimization
               </p>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function LoginPage() {
               Welcome back
             </h2>
             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Sign in to access your building intelligence dashboard
+              Sign in to access your energy optimization dashboard
             </p>
           </div>
 
@@ -332,10 +332,10 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-              NeuroX Smart Building Intelligence Platform v3.2
+              NeuroX Smart Room Energy Optimization · v3.2
             </p>
             <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
-              Enterprise License · Powered by Reinforcement Learning
+              Phase 1 Demonstration · Powered by TD3 Reinforcement Learning
             </p>
           </div>
 

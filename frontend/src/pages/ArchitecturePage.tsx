@@ -1,50 +1,65 @@
 import { motion } from 'framer-motion';
-import { Building2, Users, Brain, Monitor, ArrowDown, Database, Cpu, BarChart3 } from 'lucide-react';
+import {
+  Cpu, Thermometer, Radio, Zap, CircleDot, Wifi,
+  Server, Brain, BarChart3, Monitor, ArrowRight,
+  Database, GitBranch, Layers,
+} from 'lucide-react';
 
-const layers = [
+const architectureLayers = [
   {
-    id: 'simulation',
-    title: 'Layer 1 — Building Simulation',
-    subtitle: 'Physical Environment Engine',
-    icon: Building2,
-    color: '#1e9df1',
-    items: ['Temperature Models', 'HVAC Physics', 'Occupancy Patterns', 'Weather Integration'],
-    desc: 'Simulates the physical building environment including thermal dynamics, HVAC response curves, and occupancy flows.',
+    title: 'Hardware Layer',
+    subtitle: 'Physical Sensors & Actuators',
+    color: 'var(--color-success)',
+    items: [
+      { name: 'Raspberry Pi Pico W', desc: 'Edge MCU · WiFi-enabled · MicroPython', icon: Cpu },
+      { name: 'BME280 Sensor', desc: 'Temperature / Humidity / Pressure · I²C', icon: Thermometer },
+      { name: 'PIR Motion Sensor', desc: 'Binary occupancy detection · GPIO', icon: Radio },
+      { name: 'SCT-013 Current Clamp', desc: 'Non-invasive AC current · ADC', icon: Zap },
+      { name: '2-Channel Relay', desc: 'Heating + Cooling HVAC control · GPIO', icon: CircleDot },
+    ],
   },
   {
-    id: 'occupancy',
-    title: 'Layer 2 — Occupancy Analysis',
-    subtitle: 'Behavioral Intelligence',
-    icon: Users,
-    color: '#00b87a',
-    items: ['Sensor Fusion', 'Pattern Detection', 'Peak Prediction', 'Floor Analytics'],
-    desc: 'Processes occupancy sensor data to detect patterns, predict peak hours, and feed behavioral insights to the RL engine.',
+    title: 'Communication Layer',
+    subtitle: 'Data Transport & API',
+    color: 'var(--color-primary)',
+    items: [
+      { name: 'MQTT / REST API', desc: 'Pico W → Backend via WiFi', icon: Wifi },
+      { name: 'Flask Backend', desc: 'Python REST API · CORS · JSON', icon: Server },
+      { name: 'PostgreSQL (Neon)', desc: 'Cloud-hosted relational database', icon: Database },
+      { name: 'SQLAlchemy ORM', desc: 'Python ORM · migration · models', icon: GitBranch },
+    ],
   },
   {
-    id: 'rl-engine',
-    title: 'Layer 3 — RL Control Engine',
-    subtitle: 'Decision Intelligence (Stable-Baselines3)',
-    icon: Brain,
-    color: '#f7b928',
-    items: ['State Encoder', 'TD3 Agent', 'Reward Calculator', 'Policy Optimizer'],
-    desc: 'Core reinforcement learning engine that observes building state and decides optimal HVAC actions to minimize energy while maintaining comfort.',
+    title: 'AI / RL Layer',
+    subtitle: 'Decision Intelligence',
+    color: 'var(--color-warning)',
+    items: [
+      { name: 'TD3 Agent', desc: 'Twin Delayed DDPG · Stable-Baselines3', icon: Brain },
+      { name: 'Reward Calculator', desc: 'Comfort (0.6) + Energy (0.4) penalty', icon: BarChart3 },
+      { name: 'State Normalizer', desc: 'Indoor/Outdoor temp · Occupancy → [0,1]', icon: Layers },
+      { name: 'Action Space', desc: 'Continuous [-1, +1] → Relay control', icon: CircleDot },
+    ],
   },
   {
-    id: 'dashboard',
-    title: 'Layer 4 — Dashboard Visualization',
-    subtitle: 'NeuroX Intelligence Platform',
-    icon: Monitor,
-    color: '#e0245e',
-    items: ['Real-time Metrics', 'Interactive Charts', 'Building Twin', 'Control Interface'],
-    desc: 'Presents all data through an enterprise-grade interface enabling operators to monitor, understand, and override RL decisions.',
+    title: 'Frontend Layer',
+    subtitle: 'Visualization & Monitoring',
+    color: 'var(--color-danger)',
+    items: [
+      { name: 'React + Vite', desc: 'TypeScript · SPA · Hot reload', icon: Monitor },
+      { name: 'Recharts', desc: 'Sensor data visualization · real-time', icon: BarChart3 },
+      { name: 'React Query', desc: 'Server state · auto-refetch · caching', icon: GitBranch },
+      { name: 'Framer Motion', desc: 'Micro-animations · transitions', icon: Layers },
+    ],
   },
 ];
 
-const dataFlows = [
-  { from: 'simulation', to: 'occupancy', label: 'Sensor Data' },
-  { from: 'occupancy', to: 'rl-engine', label: 'State Vector' },
-  { from: 'rl-engine', to: 'simulation', label: 'HVAC Actions' },
-  { from: 'rl-engine', to: 'dashboard', label: 'Decisions + Metrics' },
+const dataFlowSteps = [
+  { label: 'Sensors', desc: 'BME280 + PIR + SCT-013 read physical environment', color: 'var(--color-success)' },
+  { label: 'Pico W', desc: 'Normalizes readings → sends via REST/MQTT', color: 'var(--color-success)' },
+  { label: 'Flask API', desc: 'Receives payload → feeds to TD3 model', color: 'var(--color-primary)' },
+  { label: 'TD3 Agent', desc: 'Observes state → selects action [-1, +1]', color: 'var(--color-warning)' },
+  { label: 'Relay', desc: 'Translates action → switches heating/cooling relay', color: 'var(--color-danger)' },
+  { label: 'Dashboard', desc: 'Displays state, action, reward in real-time', color: 'var(--color-primary)' },
 ];
 
 export default function ArchitecturePage() {
@@ -52,110 +67,91 @@ export default function ArchitecturePage() {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-          System architecture and data flow visualization
+          System Architecture · Hardware-in-the-Loop RL HVAC Control
         </p>
       </motion.div>
 
-      {/* Architecture Diagram */}
-      <div className="space-y-0">
-        {layers.map((layer, i) => (
-          <div key={layer.id}>
-            <motion.div
-              initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 + i * 0.15, duration: 0.5 }}
-              className="card p-6"
-              style={{ borderLeft: `3px solid ${layer.color}` }}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: `${layer.color}15` }}
-                >
-                  <layer.icon size={22} style={{ color: layer.color }} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                      {layer.title}
-                    </h3>
-                    <span className="badge" style={{ background: `${layer.color}15`, color: layer.color }}>
-                      {layer.subtitle}
-                    </span>
-                  </div>
-                  <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                    {layer.desc}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {layer.items.map((item) => (
-                      <span
-                        key={item}
-                        className="text-[10px] font-medium px-2 py-1 rounded-md"
-                        style={{ background: 'var(--color-surface-1)', color: 'var(--color-text-secondary)' }}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Arrow */}
-            {i < layers.length - 1 && (
+      {/* Data Flow Pipeline */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card p-5">
+        <h3 className="text-base font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+          RL Decision Pipeline
+        </h3>
+        <div className="flex items-center gap-1 overflow-x-auto pb-2">
+          {dataFlowSteps.map((step, i) => (
+            <div key={step.label} className="flex items-center gap-1 shrink-0">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 + i * 0.15 }}
-                className="flex items-center justify-center py-2"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 + i * 0.08 }}
+                className="rounded-xl p-3 text-center min-w-[110px]"
+                style={{ background: `${step.color}10`, border: `1.5px solid ${step.color}30` }}
               >
-                <div className="flex flex-col items-center">
-                  <ArrowDown size={18} style={{ color: 'var(--color-text-tertiary)' }} />
-                  <span className="text-[10px] font-medium mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
-                    {dataFlows[i]?.label || ''}
-                  </span>
-                </div>
+                <p className="text-[10px] font-bold" style={{ color: step.color }}>{step.label}</p>
+                <p className="text-[8px] mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{step.desc}</p>
               </motion.div>
-            )}
-          </div>
+              {i < dataFlowSteps.length - 1 && (
+                <ArrowRight size={14} style={{ color: 'var(--color-text-tertiary)' }} className="shrink-0" />
+              )}
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Architecture Layers */}
+      <div className="space-y-4">
+        {architectureLayers.map((layer, layerIdx) => (
+          <motion.div
+            key={layer.title}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 + layerIdx * 0.08 }}
+            className="card p-5"
+            style={{ borderLeft: `3px solid ${layer.color}` }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: `${layer.color}15` }}
+              >
+                <span className="text-xs font-bold" style={{ color: layer.color }}>L{layerIdx + 1}</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{layer.title}</h3>
+                <p className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>{layer.subtitle}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {layer.items.map((item) => (
+                <div
+                  key={item.name}
+                  className="flex items-center gap-2.5 py-2.5 px-3 rounded-xl"
+                  style={{ background: 'var(--color-surface-1)' }}
+                >
+                  <item.icon size={14} style={{ color: layer.color }} className="shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>{item.name}</p>
+                    <p className="text-[9px]" style={{ color: 'var(--color-text-tertiary)' }}>{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* Data Flow Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="card p-5"
-      >
-        <h3 className="text-base font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-          Technology Stack
+      {/* Reward Formula */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-5">
+        <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+          Reward Function
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { icon: Database, label: 'Backend', items: ['Flask', 'Python', 'PostgreSQL'] },
-            { icon: Brain, label: 'ML Engine', items: ['Stable-Baselines3', 'PyTorch', 'Gymnasium'] },
-            { icon: Cpu, label: 'Simulation', items: ['NumPy', 'Custom Env', 'Occupancy Model'] },
-            { icon: BarChart3, label: 'Frontend', items: ['React', 'TypeScript', 'Recharts'] },
-          ].map((stack, i) => (
-            <motion.div
-              key={stack.label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 + i * 0.06 }}
-              className="p-4 rounded-xl text-center"
-              style={{ background: 'var(--color-surface-1)' }}
-            >
-              <stack.icon size={20} className="mx-auto mb-2" style={{ color: 'var(--color-primary)' }} />
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{stack.label}</p>
-              <div className="mt-2 space-y-1">
-                {stack.items.map((item) => (
-                  <p key={item} className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>{item}</p>
-                ))}
-              </div>
-            </motion.div>
-          ))}
+        <div className="p-4 rounded-xl font-mono text-sm" style={{ background: 'var(--color-surface-1)', color: 'var(--color-text-primary)' }}>
+          <p><span style={{ color: 'var(--color-primary)' }}>R(s, a)</span> = -(</p>
+          <p className="pl-4"><span style={{ color: 'var(--color-warning)' }}>0.6</span> × |T<sub>indoor</sub> - T<sub>target</sub>| <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>← comfort penalty</span></p>
+          <p className="pl-4">+ <span style={{ color: 'var(--color-danger)' }}>0.4</span> × |a| × 5.0 <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>← energy penalty</span></p>
+          <p>)</p>
         </div>
+        <p className="text-[10px] mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
+          The agent maximizes this reward by minimizing temperature deviation from 24°C while using minimal energy (HVAC action magnitude).
+        </p>
       </motion.div>
     </div>
   );

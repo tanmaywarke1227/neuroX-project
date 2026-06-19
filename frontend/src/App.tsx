@@ -6,15 +6,12 @@ import { useThemeStore } from './store/themeStore';
 import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import BuildingTwinPage from './pages/BuildingTwinPage';
-import OccupancyPage from './pages/OccupancyPage';
+import RoomTwinPage from './pages/RoomTwinPage';
 import RLEnginePage from './pages/RLEnginePage';
 import HVACPage from './pages/HVACPage';
-import EnergyPage from './pages/EnergyPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import TrainingPage from './pages/TrainingPage';
-import SimulationPage from './pages/SimulationPage';
 import ArchitecturePage from './pages/ArchitecturePage';
-import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 
 const queryClient = new QueryClient({
@@ -45,15 +42,12 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<DashboardPage />} />
-            <Route path="/building" element={<BuildingTwinPage />} />
-            <Route path="/occupancy" element={<OccupancyPage />} />
+            <Route path="/room" element={<RoomTwinPage />} />
             <Route path="/rl-engine" element={<RLEnginePage />} />
             <Route path="/hvac" element={<HVACPage />} />
-            <Route path="/energy" element={<EnergyPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/training" element={<TrainingPage />} />
-            <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
-            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Routes>
