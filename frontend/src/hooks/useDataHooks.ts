@@ -1,13 +1,10 @@
 // =============================================
 // React Query Hooks — Data fetching with caching & auto-refetch
-// (V4 — Hardware-Aligned, cleaned up)
+// (V5 — Fully Hardware-Aligned)
 // =============================================
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchRLEngineState,
-  fetchTrainingMetrics,
-  // Real backend calls
   getAIPrediction,
   fetchHVACHistory,
   fetchDataset,
@@ -16,24 +13,6 @@ import {
   fetchRLState,
   fetchDashboardSummary,
 } from '../services/api';
-
-// =============================================
-// Mock Data Hooks (pages still using mock fallback)
-// =============================================
-
-export const useRLEngineState = () =>
-  useQuery({
-    queryKey: ['rl-engine-state'],
-    queryFn: fetchRLEngineState,
-    refetchInterval: 5000,
-  });
-
-export const useTrainingMetrics = () =>
-  useQuery({
-    queryKey: ['training-metrics'],
-    queryFn: fetchTrainingMetrics,
-    refetchInterval: 3000,
-  });
 
 // =============================================
 // Real Backend Hooks
