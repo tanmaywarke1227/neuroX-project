@@ -14,7 +14,7 @@
  *   console.log(history.logs); // [ { id, timestamp, indoor_temp, ... }, ... ]
  */
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "http://localhost:5050";
 
 /**
  * Send sensor readings to the RL agent and get back an HVAC action.
