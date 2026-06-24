@@ -201,7 +201,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                 <XAxis dataKey="time" tick={{ fontSize: 10, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} interval={4} />
                 <YAxis tick={{ fontSize: 10, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 12 }} formatter={(v: number) => [`${v}W`, 'Power']} />
+                <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 12 }} formatter={(v: any) => [`${v}W`, 'Power']} />
                 <Area type="monotone" dataKey="power" stroke="var(--color-warning)" strokeWidth={2} fill="url(#powerGrad)" dot={false} name="Power (W)" />
               </AreaChart>
             </ResponsiveContainer>
