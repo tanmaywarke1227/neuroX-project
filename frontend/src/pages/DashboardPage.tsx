@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const tempChartData = recentSensor.map((p) => ({
     time: new Date(p.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
     temp: p.temperature,
-    humidity: p.humidity,
+    pressure: p.pressure,
   }));
   const powerChartData = recentSensor.map((p) => ({
     time: new Date(p.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
@@ -57,8 +57,8 @@ export default function DashboardPage() {
       {/* Room Status Cards — 6 hardware-aligned metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Temperature', value: `${room.temperature}°C`, icon: Thermometer, color: room.temperature > 26 ? 'var(--color-warning)' : 'var(--color-primary)', sub: 'BME280' },
-          { label: 'Humidity', value: `${room.humidity}%`, icon: Droplets, color: 'var(--color-primary)', sub: 'BME280' },
+          { label: 'Temperature', value: `${room.temperature}°C`, icon: Thermometer, color: room.temperature > 26 ? 'var(--color-warning)' : 'var(--color-primary)', sub: 'BMP280' },
+          { label: 'Pressure', value: `${room.pressure}atm`, icon: Droplets, color: 'var(--color-primary)', sub: 'BMP280' },
           { label: 'Occupancy', value: room.occupied ? 'Occupied' : 'Empty', icon: room.occupied ? UserCheck : UserX, color: room.occupied ? 'var(--color-success)' : 'var(--color-text-tertiary)', sub: 'PIR Sensor' },
           { label: 'Power Usage', value: `${room.power_watts}W`, icon: Zap, color: room.power_watts > 1000 ? 'var(--color-warning)' : 'var(--color-success)', sub: 'SCT-013' },
           { label: 'HVAC', value: room.hvac_mode === 'idle' ? 'Idle' : room.hvac_mode === 'cooling' ? 'Cooling' : 'Heating', icon: Wind, color: room.hvac_mode === 'idle' ? 'var(--color-text-tertiary)' : 'var(--color-primary)', sub: '2-CH Relay' },
@@ -88,12 +88,12 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Temperature & Humidity Mini Chart */}
+        {/* Temperature & Pressure Mini Chart */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-5 lg:col-span-2">
           <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-            Temperature & Humidity
+            Temperature & Pressure
           </h3>
-          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Last 2 hours · BME280 sensor</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Last 2 hours · BMP280 sensor</p>
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={tempChartData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
@@ -103,7 +103,7 @@ export default function DashboardPage() {
                 <YAxis yAxisId="hum" orientation="right" tick={{ fontSize: 10, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 12 }} />
                 <Line yAxisId="temp" type="monotone" dataKey="temp" stroke="var(--color-warning)" strokeWidth={2} dot={false} name="Temp °C" />
-                <Line yAxisId="hum" type="monotone" dataKey="humidity" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} name="Humidity %" strokeDasharray="4 2" />
+                <Line yAxisId="pre" type="monotone" dataKey="pressure" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} name="Pressure atm" strokeDasharray="4 2" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
               </p>
               <div className="space-y-1.5">
                 {[
-                  { name: 'BME280', desc: 'Temp / Humidity / Pressure', connected: edge.sensors.bme280.connected, icon: Thermometer },
+                  { name: 'BMP280', desc: 'Temp / Pressure', connected: edge.sensors.bmp280.connected, icon: Thermometer },
                   { name: 'PIR Motion', desc: 'Occupancy Detection', connected: edge.sensors.pir.connected, icon: Radio },
                   { name: 'SCT-013', desc: 'Current Clamp (Energy)', connected: edge.sensors.sct013.connected, icon: Zap },
                   { name: '2-CH Relay', desc: 'HVAC Control', connected: edge.sensors.relay.connected, icon: CircleDot },

@@ -5,8 +5,8 @@
 
 // --- Hardware Sensors ---
 
-/** BME280 Sensor Reading */
-export interface BME280Reading {
+/** BMP280 Sensor Reading */
+export interface BMP280Reading {
   temperature: number;    // °C
   humidity: number;       // %
   pressure: number;       // hPa
@@ -43,7 +43,7 @@ export interface EdgeDeviceStatus {
   last_heartbeat: string;
   firmware_version: string;
   sensors: {
-    bme280: { connected: boolean; last_reading: string | null };
+    bmp280: { connected: boolean; last_reading: string | null };
     pir: { connected: boolean; last_reading: string | null };
     sct013: { connected: boolean; last_reading: string | null };
     relay: { connected: boolean; last_command: string | null };
@@ -56,9 +56,8 @@ export interface EdgeDeviceStatus {
 export interface RoomState {
   room_id: string;
   room_name: string;
-  temperature: number;        // °C (from BME280)
-  humidity: number;            // % (from BME280)
-  pressure: number;            // hPa (from BME280)
+  temperature: number;        // °C (from BMP280)
+  pressure: number;            // hPa (from BMP280)
   occupied: boolean;           // from PIR
   power_watts: number;         // from SCT-013
   current_amps: number;        // from SCT-013
