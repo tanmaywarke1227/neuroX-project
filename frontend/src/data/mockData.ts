@@ -24,7 +24,6 @@ export const mockRoomState: RoomState = {
   room_id: 'bedroom-1',
   room_name: 'Bedroom 1',
   temperature: 26.3,
-  humidity: 58.2,
   pressure: 1013.25,
   occupied: true,
   power_watts: 1450,
@@ -47,7 +46,7 @@ export const mockEdgeDevice: EdgeDeviceStatus = {
   last_heartbeat: new Date().toISOString(),
   firmware_version: 'v1.2.0',
   sensors: {
-    bme280: { connected: true, last_reading: new Date().toISOString() },
+    bmp280: { connected: true, last_reading: new Date().toISOString() },
     pir: { connected: true, last_reading: new Date().toISOString() },
     sct013: { connected: true, last_reading: new Date().toISOString() },
     relay: { connected: true, last_command: new Date().toISOString() },
@@ -72,9 +71,6 @@ const generateSensorHistory = (): SensorTimePoint[] => {
     const hvacEffect = hour >= 10 && hour <= 22 ? -1.5 : 0;
     const temp = baseTemp + hvacEffect + (Math.sin(i * 0.3) * 0.3);
 
-    // Humidity: inversely correlated with temp
-    const humidity = 65 - (temp - 24) * 2 + (Math.sin(i * 0.5) * 1.5);
-
     // Pressure: very stable, slight diurnal variation
     const pressure = 1013.25 + Math.sin(minuteFrac * Math.PI * 2) * 0.8;
 
@@ -87,7 +83,6 @@ const generateSensorHistory = (): SensorTimePoint[] => {
     points.push({
       timestamp: t.toISOString(),
       temperature: Math.round(temp * 10) / 10,
-      humidity: Math.round(humidity * 10) / 10,
       pressure: Math.round(pressure * 100) / 100,
       occupied,
       power_watts: Math.round(power),
@@ -208,7 +203,7 @@ export const mockTrainingMetrics: TrainingMetrics = {
 // ========================
 export const mockKPIData: KPIData[] = [
   { label: 'Temperature', value: 26.3, unit: '°C', change: 0.8, changeDirection: 'up', status: 'warning', icon: 'Thermometer' },
-  { label: 'Humidity', value: 58.2, unit: '%', change: -2.1, changeDirection: 'down', status: 'good', icon: 'Droplets' },
+  { label: 'Pressure', value: 1012.5, unit: 'hPa', change: 1.2, changeDirection: 'up', status: 'good', icon: 'Gauge' },
   { label: 'Occupancy', value: 'Occupied', unit: '', change: 0, changeDirection: 'neutral', status: 'good', icon: 'UserCheck' },
   { label: 'Power Usage', value: 1450, unit: 'W', change: 12.3, changeDirection: 'up', status: 'warning', icon: 'Zap' },
   { label: 'HVAC Status', value: 'Cooling', unit: '', change: 0, changeDirection: 'neutral', status: 'good', icon: 'Wind' },

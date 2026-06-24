@@ -12,7 +12,7 @@ const architectureLayers = [
     color: 'var(--color-success)',
     items: [
       { name: 'Raspberry Pi Pico W', desc: 'Edge MCU · WiFi-enabled · MicroPython', icon: Cpu },
-      { name: 'BME280 Sensor', desc: 'Temperature / Humidity / Pressure · I²C', icon: Thermometer },
+      { name: 'BMP280 Sensor', desc: 'Temperature / Pressure · I²C', icon: Thermometer },
       { name: 'PIR Motion Sensor', desc: 'Binary occupancy detection · GPIO', icon: Radio },
       { name: 'SCT-013 Current Clamp', desc: 'Non-invasive AC current · ADC', icon: Zap },
       { name: '2-Channel Relay', desc: 'Heating + Cooling HVAC control · GPIO', icon: CircleDot },
@@ -54,7 +54,7 @@ const architectureLayers = [
 ];
 
 const dataFlowSteps = [
-  { label: 'Sensors', desc: 'BME280 + PIR + SCT-013 read physical environment', color: 'var(--color-success)' },
+  { label: 'Sensors', desc: 'BMP280 + PIR + SCT-013 read physical environment', color: 'var(--color-success)' },
   { label: 'Pico W', desc: 'Normalizes readings → sends via REST/MQTT', color: 'var(--color-success)' },
   { label: 'Flask API', desc: 'Receives payload → feeds to TD3 model', color: 'var(--color-primary)' },
   { label: 'TD3 Agent', desc: 'Observes state → selects action [-1, +1]', color: 'var(--color-warning)' },

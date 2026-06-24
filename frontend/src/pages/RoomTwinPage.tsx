@@ -129,7 +129,7 @@ export default function RoomTwinPage() {
               {/* SENSOR MARKERS */}
               {/* ============================================================ */}
 
-              {/* BME280 Sensor (on wall near study table) */}
+              {/* BMP280 Sensor (on wall near study table) */}
               <g>
                 <motion.circle
                   cx="390" cy="340" r="18"
@@ -139,7 +139,7 @@ export default function RoomTwinPage() {
                 />
                 <circle cx="390" cy="340" r="10" fill="var(--color-success)" opacity="0.9" />
                 <text x="390" y="344" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold" fontFamily="Inter, sans-serif">T</text>
-                <text x="390" y="365" fontSize="8" fill="var(--color-success)" textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight="600">BME280</text>
+                <text x="390" y="365" fontSize="8" fill="var(--color-success)" textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight="600">BMP280</text>
                 {/* Data label */}
                 <rect x="330" y="300" width="60" height="22" rx="4" fill="var(--color-surface-0)" stroke="var(--color-success)" strokeWidth="0.8" />
                 <text x="360" y="314" fontSize="8" fill="var(--color-success)" textAnchor="middle" fontFamily="monospace" fontWeight="600">
@@ -203,9 +203,8 @@ export default function RoomTwinPage() {
           <div className="space-y-2">
             {[
               { label: 'Occupancy Status', value: room.occupied ? 'Occupied' : 'Empty', icon: room.occupied ? UserCheck : UserX, color: room.occupied ? 'var(--color-success)' : 'var(--color-text-tertiary)', source: 'PIR Sensor' },
-              { label: 'Temperature', value: `${room.temperature}°C`, icon: Thermometer, color: room.temperature > 26 ? 'var(--color-warning)' : 'var(--color-success)', source: 'BME280' },
-              { label: 'Humidity', value: `${room.humidity}%`, icon: Droplets, color: 'var(--color-primary)', source: 'BME280' },
-              { label: 'Atm. Pressure', value: `${room.pressure} hPa`, icon: Gauge, color: 'var(--color-text-secondary)', source: 'BME280' },
+              { label: 'Temperature', value: `${room.temperature}°C`, icon: Thermometer, color: room.temperature > 26 ? 'var(--color-warning)' : 'var(--color-success)', source: 'BMP280' },
+              { label: 'Atm. Pressure', value: `${room.pressure} hPa`, icon: Gauge, color: 'var(--color-text-secondary)', source: 'BMP280' },
               { label: 'Power Usage', value: `${room.power_watts}W / ${room.current_amps}A`, icon: Zap, color: room.power_watts > 1000 ? 'var(--color-warning)' : 'var(--color-success)', source: 'SCT-013' },
               { label: 'HVAC Status', value: hvacLabel, icon: room.hvac_mode === 'cooling' ? Snowflake : Wind, color: hvacColor, source: '2-CH Relay' },
               { label: 'RL Action', value: `${room.rl_action > 0 ? 'Heating' : room.rl_action < -0.15 ? 'Cooling' : 'Maintain'} (${room.rl_action.toFixed(2)})`, icon: Brain, color: 'var(--color-primary)', source: 'TD3 Agent' },

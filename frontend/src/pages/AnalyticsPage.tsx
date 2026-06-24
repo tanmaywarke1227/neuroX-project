@@ -17,7 +17,7 @@ export default function AnalyticsPage() {
   const tempHumData = mockSensorHistory.map((p) => ({
     time: new Date(p.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
     temperature: p.temperature,
-    humidity: p.humidity,
+    pressure: p.pressure,
   }));
 
   const occupancyData = mockSensorHistory.map((p) => ({
@@ -71,15 +71,15 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Row 1: Temperature & Humidity + Occupancy */}
+      {/* Row 1: Temperature & Pressure + Occupancy */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Temperature & Humidity Trend */}
+        {/* Temperature & Pressure Trend */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="card p-5">
           <div className="flex items-center gap-2 mb-1">
             <Thermometer size={16} style={{ color: 'var(--color-warning)' }} />
-            <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Temperature & Humidity</h3>
+            <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Temperature & Pressure</h3>
           </div>
-          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Last 6 hours · BME280 sensor</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Last 6 hours · BMP280 sensor</p>
           <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={tempHumData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
                 <YAxis yAxisId="h" orientation="right" tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 11 }} />
                 <Line yAxisId="t" type="monotone" dataKey="temperature" stroke="var(--color-warning)" strokeWidth={2} dot={false} name="Temp °C" />
-                <Line yAxisId="h" type="monotone" dataKey="humidity" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} name="Humidity %" strokeDasharray="4 2" />
+                <Line yAxisId="h" type="monotone" dataKey="pressure" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} name="Pressure atm" strokeDasharray="4 2" />
               </LineChart>
             </ResponsiveContainer>
           </div>

@@ -8,7 +8,6 @@
 /** BMP280 Sensor Reading */
 export interface BMP280Reading {
   temperature: number;    // °C
-  humidity: number;       // %
   pressure: number;       // hPa
   timestamp: string;
 }
@@ -73,7 +72,6 @@ export interface RoomState {
 export interface SensorTimePoint {
   timestamp: string;
   temperature: number;
-  humidity: number;
   pressure: number;
   occupied: boolean;
   power_watts: number;

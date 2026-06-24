@@ -58,7 +58,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: 'Temperature', value: `${room.temperature}°C`, icon: Thermometer, color: room.temperature > 26 ? 'var(--color-warning)' : 'var(--color-primary)', sub: 'BMP280' },
-          { label: 'Pressure', value: `${room.pressure}atm`, icon: Droplets, color: 'var(--color-primary)', sub: 'BMP280' },
+          { label: 'Atm. Pressure', value: `${room.pressure} hPa`, icon: Gauge, color: 'var(--color-text-secondary)', source: 'BMP280' },
           { label: 'Occupancy', value: room.occupied ? 'Occupied' : 'Empty', icon: room.occupied ? UserCheck : UserX, color: room.occupied ? 'var(--color-success)' : 'var(--color-text-tertiary)', sub: 'PIR Sensor' },
           { label: 'Power Usage', value: `${room.power_watts}W`, icon: Zap, color: room.power_watts > 1000 ? 'var(--color-warning)' : 'var(--color-success)', sub: 'SCT-013' },
           { label: 'HVAC', value: room.hvac_mode === 'idle' ? 'Idle' : room.hvac_mode === 'cooling' ? 'Cooling' : 'Heating', icon: Wind, color: room.hvac_mode === 'idle' ? 'var(--color-text-tertiary)' : 'var(--color-primary)', sub: '2-CH Relay' },
