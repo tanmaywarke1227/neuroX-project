@@ -245,4 +245,4 @@ export default function AnalyticsPage() {
         </div>
       </motion.div>
     </div>
-  );
+  );}

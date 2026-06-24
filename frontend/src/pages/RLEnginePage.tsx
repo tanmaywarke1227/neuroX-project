@@ -2,20 +2,35 @@ import { motion } from 'framer-motion';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
-import { mockRLEngineState } from '../data/mockData';
 import { useRLState } from '../hooks/useDataHooks';
 import {
   Brain, Thermometer, Users, Clock, Sun, ChevronRight,
   TrendingUp, Gauge, ArrowUpCircle, ArrowDownCircle, MinusCircle, Zap, Heart,
-  Loader2, AlertCircle, Wifi, WifiOff,
+  Loader2, AlertCircle, Wifi,
 } from 'lucide-react';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 
 export default function RLEnginePage() {
-  // Try real backend data first, fall back to mock
-  const { data: liveRL, isLoading, isError } = useRLState();
-  const rl = liveRL || mockRLEngineState;
-  const isLive = !!liveRL;
+  const { data: rl, isLoading, isError } = useRLState();
+
+  // Handle loading and error states securely before rendering the UI
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <Loader2 size={32} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
+        <p className="text-sm font-mono text-gray-400">Fetching live TD3 Engine state from backend...</p>
+      </div>
+    );
+  }
+
+  if (isError || !rl) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <AlertCircle size={32} style={{ color: 'var(--color-danger)' }} />
+        <p className="text-sm font-mono text-gray-400">Backend offline. Please ensure Python app.py is running.</p>
+      </div>
+    );
+  }
 
   const confidence = useAnimatedCounter(rl.agentConfidence * 100, 1500, 1);
   const totalReward = useAnimatedCounter(rl.currentReward.totalReward, 1200, 2);
@@ -37,26 +52,10 @@ export default function RLEnginePage() {
           </p>
           {/* Data Source Indicator */}
           <div className="flex items-center gap-1.5">
-            {isLive ? (
-              <>
-                <Wifi size={12} style={{ color: 'var(--color-success)' }} />
-                <span className="text-[10px] font-medium" style={{ color: 'var(--color-success)' }}>
-                  Live Data · {rl.totalDecisions} decisions
-                </span>
-              </>
-            ) : isLoading ? (
-              <>
-                <Loader2 size={12} className="animate-spin" style={{ color: 'var(--color-text-tertiary)' }} />
-                <span className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>Connecting...</span>
-              </>
-            ) : (
-              <>
-                <WifiOff size={12} style={{ color: 'var(--color-warning)' }} />
-                <span className="text-[10px] font-medium" style={{ color: 'var(--color-warning)' }}>
-                  Mock Data · Backend offline
-                </span>
-              </>
-            )}
+            <Wifi size={12} style={{ color: 'var(--color-success)' }} />
+            <span className="text-[10px] font-medium" style={{ color: 'var(--color-success)' }}>
+              Live Data · {rl.totalDecisions} decisions
+            </span>
           </div>
         </div>
       </motion.div>
@@ -70,9 +69,7 @@ export default function RLEnginePage() {
           <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
             Decision Flow
           </h3>
-          {isLive && (
-            <span className="badge badge-success text-[9px]">LIVE</span>
-          )}
+          <span className="badge badge-success text-[9px]">LIVE</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           {/* STATE */}
@@ -182,7 +179,7 @@ export default function RLEnginePage() {
             Reward Timeline
           </h3>
           <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-            Total reward per decision step {isLive && '(live)'}
+            Total reward per decision step (live DB logs)
           </p>
           <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -192,7 +189,7 @@ export default function RLEnginePage() {
                 <YAxis tick={{ fontSize: 10, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 12 }}
-                  formatter={(value: number) => [value.toFixed(2), 'Total Reward']}
+                  formatter={(value: any) => [value.toFixed(2), 'Total Reward']}
                 />
                 <Line
                   type="monotone" dataKey="reward.totalReward" stroke="var(--color-success)"
@@ -212,12 +209,12 @@ export default function RLEnginePage() {
             Action Distribution
           </h3>
           <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-            How the agent distributes its decisions {isLive && '(from database)'}
+            How the agent distributes its decisions (from database)
           </p>
           <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={rl.actionDistribution.map((d) => ({
+                data={rl.actionDistribution.map((d: any) => ({
                   ...d,
                   label: actionConfig[d.action]?.label || d.action,
                 }))}

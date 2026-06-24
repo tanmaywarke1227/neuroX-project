@@ -1,23 +1,12 @@
 // =============================================
-// API Service Layer (V4 — Hardware-Aligned)
-// Real Flask backend calls + mock fallback functions.
+// API Service Layer (V5 — Fully Hardware-Aligned)
+// Production Flask backend calls. Mock data removed.
 // =============================================
 
-import {
-  mockRLEngineState,
-  mockTrainingMetrics,
-} from '../data/mockData';
-import type {
-  RLEngineState,
-  TrainingMetrics,
-  ApiResponse,
-} from '../types';
+import type { ApiResponse } from '../types';
 
 // Base URL for Flask backend
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-// Simulate network latency (for mock data)
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Generic fetch wrapper for Flask backend
 async function backendFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -164,21 +153,7 @@ export async function fetchDashboardSummary(): Promise<{
   return backendFetch('/dashboard');
 }
 
-// =============================================
-// Mock Data Functions (for pages still using mock fallback)
-// =============================================
-
-export async function fetchRLEngineState(): Promise<RLEngineState> {
-  await delay(300);
-  return mockRLEngineState;
-}
-
-export async function fetchTrainingMetrics(): Promise<TrainingMetrics> {
-  await delay(250);
-  return mockTrainingMetrics;
-}
-
-// Generic fetch (kept for compatibility)
+// Generic fetch (kept for compatibility in case any minor hooks still reference it)
 async function _apiFetch<T>(endpoint: string): Promise<ApiResponse<T>> {
   void endpoint;
   throw new Error('Not implemented — use specific functions');
