@@ -8,6 +8,7 @@ Serves complex historical analytics datasets.
 
 import os
 import math
+import time
 import requests
 import numpy as np
 import pandas as pd
@@ -43,6 +44,10 @@ db = SQLAlchemy(app)
 # Live Hardware Config
 PICO_URL = "http://192.168.1.103"
 SYSTEM_MODE = "AI"  # Global state for Hybrid Control (AI vs MANUAL)
+
+# Presence Hold Filter Globals
+LAST_MOTION_TIMESTAMP = 0.0
+OCCUPANCY_HOLD_TIME = 300.0  # 5 Minutes presence hold (in seconds)
 
 # ============================================================
 # Database Model
@@ -101,7 +106,7 @@ def normalize_observation(indoor_temp: float, outdoor_temp: float, occupancy: in
 @app.route("/api/live_dashboard", methods=["GET"])
 def live_dashboard():
     """Main polling endpoint: Reads Pico, runs AI, logs data, triggers relays."""
-    global SYSTEM_MODE
+    global SYSTEM_MODE, LAST_MOTION_TIMESTAMP, OCCUPANCY_HOLD_TIME
     
     # 1. Fetch live hardware telemetry
     try:
@@ -112,18 +117,30 @@ def live_dashboard():
 
     current_temp = hw.get('temperature', 24.0)
     current_pressure = hw.get('pressure', 1013.0)
-    occupancy = hw.get('occupancy', 0)
+    raw_occupancy = hw.get('occupancy', 0)
     relay_cool = hw.get('relay_cool', 0)
     power_draw = hw.get('power_watts', hw.get('power', 0))
     current_amps = hw.get('current', hw.get('current_amps', 0))
     
+    # --- Software Presence Hold Filter Logic ---
+    current_time = time.time()
+    if raw_occupancy == 1:
+        LAST_MOTION_TIMESTAMP = current_time
+        smoothed_occupancy = 1
+    else:
+        # Check if the rolling window has elapsed
+        if current_time - LAST_MOTION_TIMESTAMP <= OCCUPANCY_HOLD_TIME:
+            smoothed_occupancy = 1  # Hold occupancy high
+        else:
+            smoothed_occupancy = 0  # Safe to drop to empty
+
     action_label = "Waiting..."
     confidence = 0
     hvac_action_val = 0.0
 
     # 2. Run TD3 Inference
     if model is not None:
-        obs = normalize_observation(current_temp, 34.0, occupancy) 
+        obs = normalize_observation(current_temp, 34.0, smoothed_occupancy) 
         action, _ = model.predict(obs, deterministic=True)
         hvac_action_val = float(np.clip(action[0], -1.0, 1.0))
         
@@ -151,7 +168,7 @@ def live_dashboard():
         log_entry = HVACLog(
             indoor_temp=current_temp,
             outdoor_temp=34.0,
-            occupancy=occupancy,
+            occupancy=smoothed_occupancy,
             hvac_action=hvac_action_val
         )
         db.session.add(log_entry)
@@ -162,7 +179,7 @@ def live_dashboard():
     return jsonify({
         "temperature": current_temp,
         "pressure": current_pressure,
-        "occupancy": occupancy,
+        "occupancy": smoothed_occupancy,
         "relay_cool": relay_cool,
         "relay_heat": hw.get('relay_heat', 0),
         "current_amps": current_amps,

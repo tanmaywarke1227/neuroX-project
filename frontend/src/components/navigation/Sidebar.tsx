@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Hexagon,
+  FileText,
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { id: 'analytics', label: 'Analytics', path: '/analytics', icon: BarChart3 },
   { id: 'training', label: 'Training Monitor', path: '/training', icon: GraduationCap },
   { id: 'architecture', label: 'Architecture', path: '/architecture', icon: Network },
+  { id: 'reports', label: 'Reports', path: '/reports', icon: FileText },
   { id: 'settings', label: 'Settings', path: '/settings', icon: Settings },
 ];
 
