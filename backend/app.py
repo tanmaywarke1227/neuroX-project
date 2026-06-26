@@ -186,16 +186,24 @@ def live_dashboard():
 
 @app.route("/api/control", methods=["POST"])
 def manual_control():
+    """Manual override triggered by the frontend React buttons."""
     global SYSTEM_MODE
     SYSTEM_MODE = "MANUAL" 
+    
     cool_val = request.args.get("cool")
     heat_val = request.args.get("heat")
+    
+    # We remove the silent 'except' blocks so you can see if the connection fails
     if cool_val is not None:
-        try: requests.get(f"{PICO_URL}/api/control?cool={cool_val}", timeout=2)
-        except: pass
+        print(f"[DEBUG] Sending cool={cool_val} to Pico...")
+        response = requests.get(f"{PICO_URL}/api/control?cool={cool_val}", timeout=2)
+        print(f"[DEBUG] Pico responded: {response.status_code}")
+            
     if heat_val is not None:
-        try: requests.get(f"{PICO_URL}/api/control?heat={heat_val}", timeout=2)
-        except: pass
+        print(f"[DEBUG] Sending heat={heat_val} to Pico...")
+        response = requests.get(f"{PICO_URL}/api/control?heat={heat_val}", timeout=2)
+        print(f"[DEBUG] Pico responded: {response.status_code}")
+            
     return jsonify({"status": "success", "mode": SYSTEM_MODE})
 
 @app.route("/api/mode", methods=["POST"])
