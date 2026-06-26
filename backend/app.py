@@ -42,7 +42,7 @@ if "sslmode=require" in db_url:
 db = SQLAlchemy(app)
 
 # Live Hardware Config
-PICO_URL = "http://192.168.1.103"
+PICO_URL = "http://192.168.1.101"
 SYSTEM_MODE = "AI"  # Global state for Hybrid Control (AI vs MANUAL)
 
 # Presence Hold Filter Globals
