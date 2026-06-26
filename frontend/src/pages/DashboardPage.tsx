@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { useLiveHardware, type DashboardState } from '../hooks/useLiveHardware';
 import {
-  Thermometer, UserCheck, Zap, Clock, Brain, TrendingDown, Target,
+  Thermometer, UserCheck, Zap, Clock, Brain, TrendingDown, Target, Gauge,
 } from 'lucide-react';
 
 export default function AnalyticsPage() {
@@ -20,12 +20,17 @@ export default function AnalyticsPage() {
     }
   }, [data, isOffline]);
 
-  // Transform session data for the Temp & Pressure Chart (Now including Sensor 2!)
-  const tempHumData = sessionHistory.map((p, index) => ({
+  // Transform session data for the Temperature Chart (both BMP280 sensors on one graph)
+  const tempData = sessionHistory.map((p, index) => ({
     time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     temperature: p.temperature,
-    // Using a fallback 'any' cast here in case your DashboardState type hasn't been updated yet
-    temperature_2: (p as any).temperature_2 || p.temperature, 
+    temperature_2: (p as any).temperature_2 || p.temperature,
+    index,
+  }));
+
+  // Transform session data for the Pressure Chart (separate from temperature)
+  const pressureData = sessionHistory.map((p, index) => ({
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     pressure: p.pressure,
     index,
   }));
@@ -112,33 +117,61 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Row 1: Temperature & Pressure + Occupancy */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Temperature & Pressure Trend */}
+      {/* Row 1: Temperature + Pressure + Occupancy */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Temperature Trend (Both BMP280 sensors) */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="card p-5">
           <div className="flex items-center gap-2 mb-1">
             <Thermometer size={16} style={{ color: 'var(--color-warning)' }} />
-            <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Session Temperature Tracking</h3>
+            <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Temperature Tracking</h3>
           </div>
-          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Live BMP280 hardware telemetry</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Both BMP280 sensors (Indoor + Outdoor)</p>
           <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={tempHumData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+              <LineChart data={tempData} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                 <XAxis dataKey="index" tick={false} tickLine={false} axisLine={false} />
-                <YAxis yAxisId="t" tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
-                <YAxis yAxisId="h" orientation="right" tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                <YAxis tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
                 <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 11 }} labelFormatter={() => ''} />
-                
-                {/* Primary Indoor Sensor */}
-                <Line yAxisId="t" type="monotone" dataKey="temperature" stroke="var(--color-warning)" strokeWidth={2} dot={false} isAnimationActive={false} name="Indoor Temp °C" />
-                
-                {/* Secondary Sensor (New!) */}
-                <Line yAxisId="t" type="monotone" dataKey="temperature_2" stroke="#3b82f6" strokeWidth={2} strokeDasharray="4 4" dot={false} isAnimationActive={false} name="Secondary Temp °C" />
-                
-                {/* Pressure Line */}
-                <Line yAxisId="h" type="monotone" dataKey="pressure" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} name="Pressure hPa" strokeDasharray="2 2" opacity={0.5} />
+                <Line type="monotone" dataKey="temperature" stroke="var(--color-warning)" strokeWidth={2} dot={false} isAnimationActive={false} name="Indoor Temp °C" />
+                <Line type="monotone" dataKey="temperature_2" stroke="#3b82f6" strokeWidth={2} strokeDasharray="4 4" dot={false} isAnimationActive={false} name="Outdoor Temp °C" />
               </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex items-center justify-center gap-5 mt-2">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 rounded" style={{ background: 'var(--color-warning)' }} />
+              <span className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>Indoor (BMP280 #1)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 rounded" style={{ background: '#3b82f6', opacity: 0.8 }} />
+              <span className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>Outdoor (BMP280 #2)</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Pressure Trend (Separate Chart) */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="card p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <Gauge size={16} style={{ color: 'var(--color-primary)' }} />
+            <h3 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Atmospheric Pressure</h3>
+          </div>
+          <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Live barometric pressure (hPa)</p>
+          <div style={{ height: 240 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={pressureData} margin={{ top: 5, right: 10, left: -5, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="pressGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                <XAxis dataKey="index" tick={false} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} domain={['dataMin - 0.5', 'dataMax + 0.5']} />
+                <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 11 }} formatter={(v: any) => [`${v} hPa`, 'Pressure']} labelFormatter={() => ''} />
+                <Area type="monotone" dataKey="pressure" stroke="var(--color-primary)" strokeWidth={2} fill="url(#pressGrad)" dot={false} isAnimationActive={false} name="Pressure (hPa)" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
