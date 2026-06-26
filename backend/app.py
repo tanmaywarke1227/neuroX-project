@@ -116,7 +116,7 @@ def live_dashboard():
         return jsonify({"error": "Hardware offline"}), 503
 
     current_temp = hw.get('temperature', 24.0)
-    current_temp_2 = hw.get('temperature_2', 24.0) # Added second BMP280 sensor parsing
+    current_temp_2 = hw.get('temperature_2', 24.0)
     current_pressure = hw.get('pressure', 1013.0)
     raw_occupancy = hw.get('occupancy', 0)
     relay_cool = hw.get('relay_cool', 0)
@@ -125,73 +125,58 @@ def live_dashboard():
     
     # --- Software Presence Hold Filter Logic ---
     current_time = time.time()
-    if raw_occupancy == 1:
-        LAST_MOTION_TIMESTAMP = current_time
-        smoothed_occupancy = 1
-    else:
-        # Check if the rolling window has elapsed
-        if current_time - LAST_MOTION_TIMESTAMP <= OCCUPANCY_HOLD_TIME:
-            smoothed_occupancy = 1  # Hold occupancy high
-        else:
-            smoothed_occupancy = 0  # Safe to drop to empty
+    smoothed_occupancy = 1 if (raw_occupancy == 1 or (current_time - LAST_MOTION_TIMESTAMP <= OCCUPANCY_HOLD_TIME)) else 0
+    if raw_occupancy == 1: LAST_MOTION_TIMESTAMP = current_time
 
-    # --- CH2: Smart Lighting Control ---
-    # Automatically turn on Relay 2 (Light) if occupied, turn off if empty
+    # --- RULE-BASED HYBRID LOGIC ---
+    # Rule 1: CH2 (Lighting) - Strictly tied to Occupancy
+    target_heat = 1 if smoothed_occupancy == 1 else 0
+    
+    # Rule 2: CH1 (AC) - Forced ON if > 25°C, otherwise AI decision
+    if current_temp > 25.0:
+        target_cool = 1
+        action_label = "Forced Cooling (Temp > 25°C)"
+        confidence = 100
+        hvac_action_val = -1.0 # Max cooling
+    else:
+        # AI decision zone
+        if model is not None:
+            obs = normalize_observation(current_temp, 34.0, smoothed_occupancy) 
+            action, _ = model.predict(obs, deterministic=True)
+            hvac_action_val = float(np.clip(action[0], -1.0, 1.0))
+            target_cool = 1 if hvac_action_val < -0.15 else 0
+            action_label = "AI Optimized"
+            confidence = int(min(abs(hvac_action_val) * 100 + 40, 99))
+        else:
+            target_cool = 0
+            action_label = "Model Offline"
+            confidence = 0
+
+    # Execute Hybrid Control
     if SYSTEM_MODE == "AI":
-        target_light_state = 1 if smoothed_occupancy == 1 else 0
-        if hw.get('relay_heat', 0) != target_light_state:
-            try: requests.get(f"{PICO_URL}/api/control?heat={target_light_state}", timeout=1)
+        # Lighting Relay
+        if hw.get('relay_heat') != target_heat:
+            try: requests.get(f"{PICO_URL}/api/control?heat={target_heat}", timeout=1)
+            except: pass
+        # Cooling Relay
+        if hw.get('relay_cool') != target_cool:
+            try: requests.get(f"{PICO_URL}/api/control?cool={target_cool}", timeout=1)
             except: pass
 
-    action_label = "Waiting..."
-    confidence = 0
-    hvac_action_val = 0.0
-
-    # 2. Run TD3 Inference (Controls CH1 ONLY)
-    if model is not None:
-        obs = normalize_observation(current_temp, 34.0, smoothed_occupancy) 
-        action, _ = model.predict(obs, deterministic=True)
-        hvac_action_val = float(np.clip(action[0], -1.0, 1.0))
-        
-        confidence = int(min(abs(hvac_action_val) * 100 + 40, 99))
-        
-        # 3. Autonomous Control Logic
-        if hvac_action_val < -0.15:
-            action_label = "Increase Cooling"
-            if SYSTEM_MODE == "AI" and relay_cool != 1:
-                try: requests.get(f"{PICO_URL}/api/control?cool=1", timeout=1)
-                except: pass
-        elif hvac_action_val > 0.15:
-            action_label = "Decrease Cooling (Heating)"
-            if SYSTEM_MODE == "AI" and relay_cool != 0:
-                try: requests.get(f"{PICO_URL}/api/control?cool=0", timeout=1)
-                except: pass
-        else:
-            action_label = "Maintain/Idle"
-            if SYSTEM_MODE == "AI" and relay_cool != 0:
-                try: requests.get(f"{PICO_URL}/api/control?cool=0", timeout=1)
-                except: pass
-
-    # 4. Log live session to PostgreSQL
+    # Log to DB
     try:
-        log_entry = HVACLog(
-            indoor_temp=current_temp,
-            outdoor_temp=34.0,
-            occupancy=smoothed_occupancy,
-            hvac_action=hvac_action_val
-        )
-        db.session.add(log_entry)
+        db.session.add(HVACLog(indoor_temp=current_temp, outdoor_temp=34.0, occupancy=smoothed_occupancy, hvac_action=float(target_cool)))
         db.session.commit()
     except Exception as e:
         print("DB Log Error:", e)
 
     return jsonify({
         "temperature": current_temp,
-        "temperature_2": current_temp_2, # Passed second sensor to frontend
+        "temperature_2": current_temp_2,
         "pressure": current_pressure,
         "occupancy": smoothed_occupancy,
-        "relay_cool": relay_cool,
-        "relay_heat": hw.get('relay_heat', 0),
+        "relay_cool": target_cool,
+        "relay_heat": target_heat,
         "current_amps": current_amps,
         "power_draw_w": power_draw,
         "rl_action": action_label,
@@ -201,30 +186,20 @@ def live_dashboard():
 
 @app.route("/api/control", methods=["POST"])
 def manual_control():
-    """Manual override triggered by the frontend React buttons."""
     global SYSTEM_MODE
     SYSTEM_MODE = "MANUAL" 
-    
     cool_val = request.args.get("cool")
-    heat_val = request.args.get("heat") # Added support for CH2 Manual Override
-    
+    heat_val = request.args.get("heat")
     if cool_val is not None:
-        try:
-            requests.get(f"{PICO_URL}/api/control?cool={cool_val}", timeout=2)
-        except:
-            pass
-            
+        try: requests.get(f"{PICO_URL}/api/control?cool={cool_val}", timeout=2)
+        except: pass
     if heat_val is not None:
-        try:
-            requests.get(f"{PICO_URL}/api/control?heat={heat_val}", timeout=2)
-        except:
-            pass
-            
+        try: requests.get(f"{PICO_URL}/api/control?heat={heat_val}", timeout=2)
+        except: pass
     return jsonify({"status": "success", "mode": SYSTEM_MODE})
 
 @app.route("/api/mode", methods=["POST"])
 def set_mode():
-    """Switch between AI and MANUAL control from the Master Toggle."""
     global SYSTEM_MODE
     data = request.get_json(silent=True) or {}
     if data.get("mode") in ["AI", "MANUAL"]:
