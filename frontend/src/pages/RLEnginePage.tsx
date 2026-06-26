@@ -13,7 +13,15 @@ import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 export default function RLEnginePage() {
   const { data: rl, isLoading, isError } = useRLState();
 
-  // Handle loading states
+  // 1. CRITICAL FIX: ALL HOOKS MUST BE AT THE TOP!
+  // We calculate safe fallbacks here and run the hooks before any 'return' statements.
+  const confidenceVal = (rl?.agentConfidence || 0) * 100;
+  const rewardVal = rl?.currentReward?.totalReward || 0;
+  
+  const confidence = useAnimatedCounter(confidenceVal, 1500, 1);
+  const totalReward = useAnimatedCounter(rewardVal, 1200, 2);
+
+  // 2. NOW we can do our early returns for loading/errors
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -23,7 +31,6 @@ export default function RLEnginePage() {
     );
   }
 
-  // Handle true offline states
   if (isError || !rl) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -33,7 +40,6 @@ export default function RLEnginePage() {
     );
   }
 
-  // CRITICAL FIX: Handle the "Empty Database" response gracefully!
   if ((rl as any).error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4 text-center">
@@ -47,13 +53,7 @@ export default function RLEnginePage() {
     );
   }
 
-  // Safe fallback values using Optional Chaining (?.) to prevent crashes
-  const confidenceVal = (rl?.agentConfidence || 0) * 100;
-  const rewardVal = rl?.currentReward?.totalReward || 0;
-  
-  const confidence = useAnimatedCounter(confidenceVal, 1500, 1);
-  const totalReward = useAnimatedCounter(rewardVal, 1200, 2);
-
+  // 3. UI Configuration mapping
   const actionConfig: Record<string, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
     increase_cooling: { label: 'Increase Cooling', icon: ArrowUpCircle, color: 'var(--color-primary)' },
     decrease_cooling: { label: 'Decrease Cooling', icon: ArrowDownCircle, color: 'var(--color-warning)' },
