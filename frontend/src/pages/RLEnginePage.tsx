@@ -6,14 +6,14 @@ import { useRLState } from '../hooks/useDataHooks';
 import {
   Brain, Thermometer, Users, Clock, Sun, ChevronRight,
   TrendingUp, Gauge, ArrowUpCircle, ArrowDownCircle, MinusCircle, Zap, Heart,
-  Loader2, AlertCircle, Wifi,
+  Loader2, AlertCircle, Wifi, Database
 } from 'lucide-react';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 
 export default function RLEnginePage() {
   const { data: rl, isLoading, isError } = useRLState();
 
-  // Handle loading and error states securely before rendering the UI
+  // Handle loading states
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -23,6 +23,7 @@ export default function RLEnginePage() {
     );
   }
 
+  // Handle true offline states
   if (isError || !rl) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -32,8 +33,26 @@ export default function RLEnginePage() {
     );
   }
 
-  const confidence = useAnimatedCounter(rl.agentConfidence * 100, 1500, 1);
-  const totalReward = useAnimatedCounter(rl.currentReward.totalReward, 1200, 2);
+  // CRITICAL FIX: Handle the "Empty Database" response gracefully!
+  if ((rl as any).error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4 text-center">
+        <Database size={48} style={{ color: 'var(--color-warning)', opacity: 0.8 }} />
+        <h3 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Awaiting First Telemetry</h3>
+        <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+          The RL Engine is connected, but the database is currently empty.<br/>
+          Turn on your Pico W hardware to start logging decisions!
+        </p>
+      </div>
+    );
+  }
+
+  // Safe fallback values using Optional Chaining (?.) to prevent crashes
+  const confidenceVal = (rl?.agentConfidence || 0) * 100;
+  const rewardVal = rl?.currentReward?.totalReward || 0;
+  
+  const confidence = useAnimatedCounter(confidenceVal, 1500, 1);
+  const totalReward = useAnimatedCounter(rewardVal, 1200, 2);
 
   const actionConfig: Record<string, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
     increase_cooling: { label: 'Increase Cooling', icon: ArrowUpCircle, color: 'var(--color-primary)' },
@@ -41,7 +60,7 @@ export default function RLEnginePage() {
     maintain_cooling: { label: 'Maintain Cooling', icon: MinusCircle, color: 'var(--color-success)' },
   };
 
-  const currentActionCfg = actionConfig[rl.currentAction] || actionConfig.maintain_cooling;
+  const currentActionCfg = actionConfig[rl?.currentAction] || actionConfig.maintain_cooling;
 
   return (
     <div className="space-y-6">
@@ -54,7 +73,7 @@ export default function RLEnginePage() {
           <div className="flex items-center gap-1.5">
             <Wifi size={12} style={{ color: 'var(--color-success)' }} />
             <span className="text-[10px] font-medium" style={{ color: 'var(--color-success)' }}>
-              Live Data · {rl.totalDecisions} decisions
+              Live Data · {rl?.totalDecisions || 0} decisions
             </span>
           </div>
         </div>
@@ -87,11 +106,11 @@ export default function RLEnginePage() {
             </div>
             <div className="space-y-2">
               {[
-                { icon: Users, label: 'Occupancy', value: `${rl.currentState.occupancy}%` },
-                { icon: Thermometer, label: 'Temperature', value: `${typeof rl.currentState.temperature === 'number' ? rl.currentState.temperature.toFixed(1) : rl.currentState.temperature}°C` },
-                { icon: Zap, label: 'HVAC', value: rl.currentState.hvacStatus ? 'Active' : 'Idle' },
-                { icon: Clock, label: 'Time', value: `${rl.currentState.timeOfDay}:00` },
-                { icon: Sun, label: 'Outdoor', value: `${rl.currentState.outdoorTemp}°C` },
+                { icon: Users, label: 'Occupancy', value: `${(rl?.currentState?.occupancy || 0) === 1 ? 'Yes' : 'No'}` },
+                { icon: Thermometer, label: 'Temperature', value: `${typeof rl?.currentState?.temperature === 'number' ? rl.currentState.temperature.toFixed(1) : (rl?.currentState?.temperature || '--')}°C` },
+                { icon: Zap, label: 'HVAC', value: rl?.currentState?.hvacStatus ? 'Active' : 'Idle' },
+                { icon: Clock, label: 'Time', value: `${rl?.currentState?.timeOfDay || '00'}:00` },
+                { icon: Sun, label: 'Outdoor', value: `${rl?.currentState?.outdoorTemp || '--'}°C` },
               ].map((s) => (
                 <div key={s.label} className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-1.5">
@@ -146,7 +165,7 @@ export default function RLEnginePage() {
               <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Reward</span>
             </div>
             <div className="text-center py-3">
-              <p className="text-3xl font-bold" style={{ color: rl.currentReward.totalReward > 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+              <p className="text-3xl font-bold" style={{ color: (rl?.currentReward?.totalReward || 0) > 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
                 {totalReward > 0 ? '+' : ''}{totalReward}
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>Total Reward</p>
@@ -155,13 +174,13 @@ export default function RLEnginePage() {
               <div className="flex justify-between items-center">
                 <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Energy Penalty</span>
                 <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-danger)' }}>
-                  {rl.currentReward.energyPenalty.toFixed(2)}
+                  {rl?.currentReward?.energyPenalty?.toFixed(2) || '0.00'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Comfort Penalty</span>
                 <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-warning)' }}>
-                  {rl.currentReward.comfortPenalty.toFixed(2)}
+                  {rl?.currentReward?.comfortPenalty?.toFixed(2) || '0.00'}
                 </span>
               </div>
             </div>
@@ -183,13 +202,13 @@ export default function RLEnginePage() {
           </p>
           <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={rl.decisionHistory} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+              <LineChart data={rl?.decisionHistory || []} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                 <XAxis dataKey="timestamp" tick={{ fontSize: 10, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} interval={3} />
                 <YAxis tick={{ fontSize: 10, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 12 }}
-                  formatter={(value: any) => [value.toFixed(2), 'Total Reward']}
+                  formatter={(value: any) => [Number(value).toFixed(2), 'Total Reward']}
                 />
                 <Line
                   type="monotone" dataKey="reward.totalReward" stroke="var(--color-success)"
@@ -214,7 +233,7 @@ export default function RLEnginePage() {
           <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={rl.actionDistribution.map((d: any) => ({
+                data={(rl?.actionDistribution || []).map((d: any) => ({
                   ...d,
                   label: actionConfig[d.action]?.label || d.action,
                 }))}
@@ -241,10 +260,10 @@ export default function RLEnginePage() {
         className="grid grid-cols-2 sm:grid-cols-4 gap-4"
       >
         {[
-          { label: 'Policy Version', value: rl.policyVersion, icon: Brain },
-          { label: 'Total Decisions', value: rl.totalDecisions.toLocaleString(), icon: TrendingUp },
-          { label: 'Avg Reward', value: rl.avgReward.toFixed(2), icon: Heart },
-          { label: 'Agent Confidence', value: `${(rl.agentConfidence * 100).toFixed(1)}%`, icon: Gauge },
+          { label: 'Policy Version', value: rl?.policyVersion || 'TD3-v3', icon: Brain },
+          { label: 'Total Decisions', value: (rl?.totalDecisions || 0).toLocaleString(), icon: TrendingUp },
+          { label: 'Avg Reward', value: (rl?.avgReward || 0).toFixed(2), icon: Heart },
+          { label: 'Agent Confidence', value: `${((rl?.agentConfidence || 0) * 100).toFixed(1)}%`, icon: Gauge },
         ].map((item, i) => (
           <motion.div
             key={item.label}

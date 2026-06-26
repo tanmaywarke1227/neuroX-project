@@ -1,24 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLiveHardware } from '../hooks/useLiveHardware';
 import {
-  Wind, Snowflake, Flame, Power, Brain, Activity, Clock, Zap, Target
+  Wind, Snowflake, Flame, Power, Brain, Activity, Zap, Target, Lightbulb
 } from 'lucide-react';
 
 export default function HVACPage() {
   const { data, isOffline, sendCommand } = useLiveHardware();
-  const [isAiMode, setIsAiMode] = useState<boolean>(true); // AI controls it by default
+  const [isAiMode, setIsAiMode] = useState<boolean>(true);
+
+  // Keep the UI toggle in sync with the backend's true mode in case of a page refresh
+  useEffect(() => {
+    if (data?.mode) {
+      setIsAiMode(data.mode === 'AI');
+    }
+  }, [data?.mode]);
 
   // Fallback safe data
   const safeData = data || {
     temperature: 0, pressure: 0, occupancy: 0, power_draw_w: 0, relay_cool: 0, relay_heat: 0, rl_action: 'Waiting...', confidence: 0
   };
 
-  // The function to handle the manual click on the Cooling Relay button
+  // Handle manual click on the Cooling Relay (CH1)
   const handleCoolingToggle = () => {
-    if (isAiMode) return; // Prevent manual clicks if AI is in charge
+    if (isAiMode) return; 
     const newValue = safeData.relay_cool === 1 ? 0 : 1; 
-    sendCommand('control?cool=' + newValue); // Sends the command to the Flask API
+    sendCommand('control?cool=' + newValue); 
+  };
+
+  // Handle manual click on the Lighting/Heating Relay (CH2)
+  const handleHeatingToggle = () => {
+    if (isAiMode) return; 
+    const newValue = safeData.relay_heat === 1 ? 0 : 1; 
+    sendCommand('control?heat=' + newValue); 
   };
 
   return (
@@ -64,6 +78,7 @@ export default function HVACPage() {
 
       {/* Relay Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
         {/* Cooling Relay (CH1) */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="card p-5">
           <div className="flex items-center gap-2 mb-3">
@@ -107,19 +122,47 @@ export default function HVACPage() {
           </div>
         </motion.div>
 
-        {/* Heating Relay (CH2) - Placeholder for future expansion */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card p-5 opacity-70">
+        {/* Heating/Lighting Relay (CH2) */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Flame size={16} style={{ color: 'var(--color-text-tertiary)' }} />
-            <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Heating Relay (CH2)</span>
+            <Lightbulb size={16} style={{ color: safeData.relay_heat ? 'var(--color-warning)' : 'var(--color-text-tertiary)' }} />
+            <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Lighting Relay (CH2)</span>
           </div>
+          
           <div className="text-center py-4">
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl" style={{ background: 'var(--color-surface-2)', border: '2px solid var(--color-border)' }}>
-              <Power size={20} style={{ color: 'var(--color-text-tertiary)' }} />
-              <span className="text-lg font-bold" style={{ color: 'var(--color-text-tertiary)' }}>OFF</span>
-            </div>
+            <button
+              onClick={handleHeatingToggle}
+              disabled={isAiMode || isOffline}
+              className={`inline-flex items-center gap-2 px-8 py-4 rounded-2xl transition-all duration-200 ${
+                isAiMode 
+                  ? 'opacity-60 cursor-not-allowed' 
+                  : 'hover:scale-105 active:scale-95 cursor-pointer shadow-lg'
+              }`}
+              style={{
+                background: safeData.relay_heat ? 'rgba(245, 158, 11, 0.1)' : 'var(--color-surface-2)',
+                border: `2px solid ${safeData.relay_heat ? 'var(--color-warning)' : 'var(--color-border)'}`,
+              }}
+            >
+              <Power size={24} style={{ color: safeData.relay_heat ? 'var(--color-warning)' : 'var(--color-text-tertiary)' }} />
+              <span className="text-xl font-bold tracking-wide" style={{ color: safeData.relay_heat ? 'var(--color-warning)' : 'var(--color-text-tertiary)' }}>
+                {safeData.relay_heat ? 'ON' : 'OFF'}
+              </span>
+            </button>
           </div>
-          <p className="text-[10px] text-center mt-2" style={{ color: 'var(--color-text-tertiary)' }}>Currently unused in Phase 1</p>
+          
+          <div className="h-6 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              {isAiMode ? (
+                 <motion.p key="ai-ch2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[10px] font-semibold text-center" style={{ color: 'var(--color-warning)' }}>
+                   🔒 Locked: Tied to Occupancy Sensor
+                 </motion.p>
+              ) : (
+                <motion.p key="manual-ch2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[10px] text-center" style={{ color: 'var(--color-text-tertiary)' }}>
+                  👆 Click to physically toggle hardware
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
 
         {/* Overall HVAC State */}
