@@ -116,6 +116,7 @@ def live_dashboard():
         return jsonify({"error": "Hardware offline"}), 503
 
     current_temp = hw.get('temperature', 24.0)
+    current_temp_2 = hw.get('temperature_2', 24.0) # Added second BMP280 sensor parsing
     current_pressure = hw.get('pressure', 1013.0)
     raw_occupancy = hw.get('occupancy', 0)
     relay_cool = hw.get('relay_cool', 0)
@@ -134,11 +135,19 @@ def live_dashboard():
         else:
             smoothed_occupancy = 0  # Safe to drop to empty
 
+    # --- CH2: Smart Lighting Control ---
+    # Automatically turn on Relay 2 (Light) if occupied, turn off if empty
+    if SYSTEM_MODE == "AI":
+        target_light_state = 1 if smoothed_occupancy == 1 else 0
+        if hw.get('relay_heat', 0) != target_light_state:
+            try: requests.get(f"{PICO_URL}/api/control?heat={target_light_state}", timeout=1)
+            except: pass
+
     action_label = "Waiting..."
     confidence = 0
     hvac_action_val = 0.0
 
-    # 2. Run TD3 Inference
+    # 2. Run TD3 Inference (Controls CH1 ONLY)
     if model is not None:
         obs = normalize_observation(current_temp, 34.0, smoothed_occupancy) 
         action, _ = model.predict(obs, deterministic=True)
@@ -178,6 +187,7 @@ def live_dashboard():
 
     return jsonify({
         "temperature": current_temp,
+        "temperature_2": current_temp_2, # Passed second sensor to frontend
         "pressure": current_pressure,
         "occupancy": smoothed_occupancy,
         "relay_cool": relay_cool,
@@ -196,11 +206,20 @@ def manual_control():
     SYSTEM_MODE = "MANUAL" 
     
     cool_val = request.args.get("cool")
+    heat_val = request.args.get("heat") # Added support for CH2 Manual Override
+    
     if cool_val is not None:
         try:
             requests.get(f"{PICO_URL}/api/control?cool={cool_val}", timeout=2)
         except:
             pass
+            
+    if heat_val is not None:
+        try:
+            requests.get(f"{PICO_URL}/api/control?heat={heat_val}", timeout=2)
+        except:
+            pass
+            
     return jsonify({"status": "success", "mode": SYSTEM_MODE})
 
 @app.route("/api/mode", methods=["POST"])

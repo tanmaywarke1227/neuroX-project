@@ -20,10 +20,12 @@ export default function AnalyticsPage() {
     }
   }, [data, isOffline]);
 
-  // Transform session data for the Temp & Pressure Chart
+  // Transform session data for the Temp & Pressure Chart (Now including Sensor 2!)
   const tempHumData = sessionHistory.map((p, index) => ({
     time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     temperature: p.temperature,
+    // Using a fallback 'any' cast here in case your DashboardState type hasn't been updated yet
+    temperature_2: (p as any).temperature_2 || p.temperature, 
     pressure: p.pressure,
     index,
   }));
@@ -127,8 +129,15 @@ export default function AnalyticsPage() {
                 <YAxis yAxisId="t" tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
                 <YAxis yAxisId="h" orientation="right" tick={{ fontSize: 9, fill: 'var(--color-text-tertiary)' }} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
                 <Tooltip contentStyle={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', borderRadius: '0.85rem', fontSize: 11 }} labelFormatter={() => ''} />
-                <Line yAxisId="t" type="monotone" dataKey="temperature" stroke="var(--color-warning)" strokeWidth={2} dot={false} isAnimationActive={false} name="Temp °C" />
-                <Line yAxisId="h" type="monotone" dataKey="pressure" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} name="Pressure hPa" strokeDasharray="4 2" />
+                
+                {/* Primary Indoor Sensor */}
+                <Line yAxisId="t" type="monotone" dataKey="temperature" stroke="var(--color-warning)" strokeWidth={2} dot={false} isAnimationActive={false} name="Indoor Temp °C" />
+                
+                {/* Secondary Sensor (New!) */}
+                <Line yAxisId="t" type="monotone" dataKey="temperature_2" stroke="#3b82f6" strokeWidth={2} strokeDasharray="4 4" dot={false} isAnimationActive={false} name="Secondary Temp °C" />
+                
+                {/* Pressure Line */}
+                <Line yAxisId="h" type="monotone" dataKey="pressure" stroke="var(--color-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} name="Pressure hPa" strokeDasharray="2 2" opacity={0.5} />
               </LineChart>
             </ResponsiveContainer>
           </div>

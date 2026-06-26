@@ -13,6 +13,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import TrainingPage from './pages/TrainingPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import SettingsPage from './pages/SettingsPage';
+import ReportsPage from './pages/ReportsPage'; // <-- Imported the new Reports Page
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/training" element={<TrainingPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/reports" element={<ReportsPage />} /> {/* <-- Registered the new Route */}
           </Route>
         </Routes>
       </BrowserRouter>
