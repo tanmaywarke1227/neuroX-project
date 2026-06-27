@@ -42,7 +42,7 @@ if "sslmode=require" in db_url:
 db = SQLAlchemy(app)
 
 # Live Hardware Config
-PICO_URL = "http://192.168.1.101"
+PICO_URL = "http://192.168.1.104"  # Static IP — must match STATIC_IP in pico_main.py
 SYSTEM_MODE = "AI"  # Global state for Hybrid Control (AI vs MANUAL)
 
 # Presence Hold Filter Globals
@@ -162,6 +162,13 @@ def live_dashboard():
         if hw.get('relay_cool') != target_cool:
             try: requests.get(f"{PICO_URL}/api/control?cool={target_cool}", timeout=1)
             except: pass
+    else:
+        # MANUAL MODE: Don't touch relays — read actual hardware state
+        # Override the AI-computed values with what the Pico actually reports
+        target_cool = relay_cool             # Use ACTUAL pin state from Pico
+        target_heat = hw.get('relay_heat', 0) # Use ACTUAL pin state from Pico
+        action_label = "Manual Override"
+        confidence = 0
 
     # Log to DB
     try:
