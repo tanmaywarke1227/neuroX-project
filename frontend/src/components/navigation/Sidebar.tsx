@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { id: 'room', label: 'Room Twin', path: '/room', icon: Home },
   { id: 'rl-engine', label: 'RL Engine', path: '/rl-engine', icon: Brain },
   { id: 'hvac', label: 'HVAC Control', path: '/hvac', icon: Wind },
@@ -100,10 +100,8 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-3 px-2.5">
         <ul className="flex flex-col gap-0.5">
           {navItems.map((item) => {
-            const isActive =
-              item.path === '/'
-                ? location.pathname === '/'
-                : location.pathname.startsWith(item.path);
+            const isActive = location.pathname === item.path || 
+              (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
 
             return (
               <li key={item.id}>

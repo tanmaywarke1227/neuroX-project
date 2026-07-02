@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNotifications } from './useNotifications';
 
 export interface DashboardState {
   temperature: number;
+  temperature_2?: number;
   pressure: number;
   occupancy: number;
   relay_cool: number;
@@ -16,41 +18,61 @@ export interface DashboardState {
 export const useLiveHardware = () => {
   const [data, setData] = useState<DashboardState | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(true);
-  
-  // Pointing strictly to your Python Brain (Tier 2), not the Pico
+  const { pushAlert } = useNotifications();
+
   const PYTHON_BACKEND_URL = 'http://localhost:5000';
 
   useEffect(() => {
+    let wasOffline = true; // Track previous state for "back online" notification
+
     const fetchLiveState = async () => {
       try {
         const response = await fetch(`${PYTHON_BACKEND_URL}/api/live_dashboard`);
-        if (!response.ok) throw new Error('Backend response was not ok');
-        
+
+        // Backend responded but with error (e.g., 503 = hardware offline)
+        if (!response.ok) {
+          const errBody = await response.json().catch(() => ({}));
+          if (response.status === 503 || errBody?.error?.includes('offline')) {
+            pushAlert('warning', 'Hardware disconnected — Pico W is not responding');
+          } else {
+            pushAlert('warning', `Backend error: ${response.status} ${response.statusText}`);
+          }
+          setIsOffline(true);
+          return;
+        }
+
         const jsonData: DashboardState = await response.json();
         setData(jsonData);
         setIsOffline(false);
-      } catch (error) {
-        console.error("Failed to fetch from Python backend:", error);
+
+        // Push "back online" notification if we recovered from offline
+        if (wasOffline) {
+          pushAlert('info', 'System online — Backend and hardware connected');
+        }
+        wasOffline = false;
+      } catch (_error) {
+        // Network error = backend is completely unreachable
+        pushAlert('critical', 'Backend offline — Cannot reach Flask server at localhost:5000');
         setIsOffline(true);
+        wasOffline = true;
       }
     };
 
-    fetchLiveState(); 
-    const interval = setInterval(fetchLiveState, 2000); // Poll every 2 seconds
-    
-    return () => clearInterval(interval);
-  }, []);
+    fetchLiveState();
+    const interval = setInterval(fetchLiveState, 2000);
 
-  // Send manual commands to the Python backend to route to the hardware
+    return () => clearInterval(interval);
+  }, [pushAlert]);
+
   const sendCommand = async (endpoint: string, payload: Record<string, any> = {}) => {
     try {
       await fetch(`${PYTHON_BACKEND_URL}/api/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-    } catch (error) {
-      console.error(`Failed to send command to ${endpoint}:`, error);
+    } catch (_error) {
+      pushAlert('critical', `Command failed: Could not reach backend for ${endpoint}`);
     }
   };
 
