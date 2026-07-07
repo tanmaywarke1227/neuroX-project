@@ -42,7 +42,7 @@ if "sslmode=require" in db_url:
 db = SQLAlchemy(app)
 
 # Live Hardware Config
-PICO_URL = "http://192.168.1.104"  # Static IP — must match STATIC_IP in pico_main.py
+PICO_URL = "http://10.129.6.104"  # Static IP — must match STATIC_IP in pico_main.py
 SYSTEM_MODE = "AI"  # Global state for Hybrid Control (AI vs MANUAL)
 
 # Presence Hold Filter Globals
